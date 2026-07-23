@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.hadilta.com</groupId>
-    <artifactId>besure-security-spring-boot</artifactId>
+    <artifactId>besure-security-demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>besure-security-spring-boot</name>
-    <description>besure-security-spring-boot</description>
+    <name>besure-security-demo</name>
+    <description>besure-security-demo</description>
     <url/>
     <licenses>
         <license/>
@@ -32,27 +32,30 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>org.hadilta</groupId>
-            <artifactId>besure-security-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>org.hadilta.com</groupId>
+            <artifactId>besure-security-spring-boot</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-web</artifactId>
-                <version>4.1.0</version>
-            </dependency>
     </dependencies>
 
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
