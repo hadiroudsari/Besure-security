@@ -23,6 +23,8 @@ public class JWTCheckFilter implements Filter {
             authorizationHeader = authorizationHeader.substring(7);
         }
 
+        var decoded= JWTTokenDecoder.oneInstance().decode(authorizationHeader);
+
         filterChain.doFilter(servletRequest, servletResponse);
 
     }
