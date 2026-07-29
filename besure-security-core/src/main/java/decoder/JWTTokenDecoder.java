@@ -21,7 +21,7 @@ public class JWTTokenDecoder {
 
     private final String jwkSetUri = "http://localhost:8180/realms/quickstart/protocol/openid-connect/certs";
 
-    PublicKeyManager cashedPublickey= PublicKeyManager.getInstance();
+    PublicKeyManager publicKeyManager= PublicKeyManager.getInstance();
 
     private static final JWTTokenDecoder instance = new JWTTokenDecoder();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -70,7 +70,8 @@ public class JWTTokenDecoder {
         JsonNode headerNode = objectMapper.readTree(headerJson);
         var kid = headerNode.get("kid").asText();
 
-        RSAPublicKey publicKey = getPublicKeyFromKeycloak(kid);
+        RSAPublicKey publicKey = publicKeyManager.getPublicKey(kid);
+
 
         Signature verifier = Signature.getInstance("SHA256withRSA");
 
@@ -85,41 +86,6 @@ public class JWTTokenDecoder {
         }
 
     }
-
-    private RSAPublicKey getPublicKeyFromKeycloak(String kid) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-
-        String jwksJson = new String(
-                URI.create(jwkSetUri).toURL().openStream().readAllBytes(),
-                StandardCharsets.UTF_8
-        );
-
-        var keys = objectMapper.readTree(jwksJson).get("keys");
-        for (JsonNode key : keys) {
-
-            String keyId = key.get("kid").asText();
-
-            if (kid.equals(keyId)) {
-
-                String n = key.get("n").asText();
-                String e = key.get("e").asText();
-
-                byte[] modulusBytes = Base64.getUrlDecoder().decode(n);
-                byte[] exponentBytes = Base64.getUrlDecoder().decode(e);
-
-                BigInteger modulus = new BigInteger(1, modulusBytes);
-                BigInteger exponent = new BigInteger(1, exponentBytes);
-
-                RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(modulus, exponent);
-
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
-                return (RSAPublicKey) keyFactory.generatePublic(publicKeySpec);
-            }
-        }
-
-        throw new IllegalArgumentException("No matching public key found for kid: " + kid);
-    }
-
 
     record DecodedToken(
             Map<String, String> header,
