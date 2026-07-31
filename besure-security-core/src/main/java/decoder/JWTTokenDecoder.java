@@ -1,25 +1,21 @@
 package decoder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class JWTTokenDecoder {
-
-
-    private final String jwkSetUri = "http://localhost:8180/realms/quickstart/protocol/openid-connect/certs";
 
     PublicKeyManager publicKeyManager= PublicKeyManager.getInstance();
 
@@ -33,7 +29,7 @@ public class JWTTokenDecoder {
     private JWTTokenDecoder() {
     }
 
-    public DecodedToken decode(String token) {
+    public DecodedToken decode(String token) throws JsonProcessingException {
 
         String[] parts = token.split("\\.");
 
@@ -44,12 +40,18 @@ public class JWTTokenDecoder {
         Decoder decoder = Base64.getUrlDecoder();
         String headerJSON = new String(decoder.decode(parts[0]));
         String payloadJSON = new String(decoder.decode(parts[1]));
+        Map<String, Object> payload =
+                objectMapper.readValue(
+                        payloadJSON,
+                        new TypeReference<>() {
+                        }
+                );
         byte[] signatureBytes = Base64.getUrlDecoder().decode(parts[2]);
         String signingInput = parts[0] + "." + parts[1];
 
         var decodedToken = new DecodedToken(
                 Map.of("header", headerJSON),
-                Map.of("payload", payloadJSON),
+                payload,
                 signatureBytes,
                 signingInput
         );
@@ -65,7 +67,7 @@ public class JWTTokenDecoder {
 
     }
 
-    private void validateToken(DecodedToken decodedToken) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+    private void validateToken(DecodedToken decodedToken) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         String headerJson = decodedToken.header().get("header");
         JsonNode headerNode = objectMapper.readTree(headerJson);
         var kid = headerNode.get("kid").asText();
@@ -87,13 +89,28 @@ public class JWTTokenDecoder {
 
     }
 
-    record DecodedToken(
+   public record DecodedToken(
             Map<String, String> header,
-            Map<String, String> payload,
+            Map<String, Object> payload,
             byte[] signature,
             String signingInput
     ) {
-    }
+       @SuppressWarnings("unchecked")
+       public Set<String> roles() {
 
+           Map<String, Object> realmAccess =
+                   (Map<String, Object>) payload.get("realm_access");
 
+           if (realmAccess == null) {
+               return Set.of();
+           }
+
+           List<String> roles =
+                   (List<String>) realmAccess.get("roles");
+
+           return roles == null ? Set.of() : Set.copyOf(roles);
+
+       }
+
+   }
 }
