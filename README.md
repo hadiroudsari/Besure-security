@@ -1,4 +1,9 @@
-Running Keycloak with Docker
+# Besure Security
+
+A lightweight authorization framework inspired by Spring Security. It focuses on making JWT authentication and role-based authorization easy to understand, configure, and extend.
+Not ready for production.
+
+#### Running Keycloak with Docker
 
 Start a local Keycloak instance for development:
 ```
