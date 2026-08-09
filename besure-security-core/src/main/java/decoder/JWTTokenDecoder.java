@@ -81,9 +81,7 @@ public class JWTTokenDecoder {
 
         verifier.update(decodedToken.signingInput().getBytes(StandardCharsets.UTF_8));
 
-        boolean valid = verifier.verify(decodedToken.signature());
-
-        if (!valid) {
+        if (!verifier.verify(decodedToken.signature())) {
             throw new IllegalArgumentException("Invalid JWT signature");
         }
 
@@ -98,15 +96,13 @@ public class JWTTokenDecoder {
        @SuppressWarnings("unchecked")
        public Set<String> roles() {
 
-           Map<String, Object> realmAccess =
-                   (Map<String, Object>) payload.get("realm_access");
+           Map<String, Object> realmAccess = (Map<String, Object>) payload.get("realm_access");
 
            if (realmAccess == null) {
                return Set.of();
            }
 
-           List<String> roles =
-                   (List<String>) realmAccess.get("roles");
+           List<String> roles = (List<String>) realmAccess.get("roles");
 
            return roles == null ? Set.of() : Set.copyOf(roles);
 

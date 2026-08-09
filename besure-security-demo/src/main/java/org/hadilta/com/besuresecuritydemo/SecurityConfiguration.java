@@ -10,9 +10,7 @@ public class SecurityConfiguration {
     @Bean
     public AuthorizationManager authorizationManager() {
 
-        AuthorizationManager manager = new AuthorizationManager();
-
-//        manager.isDefaultPermission = true;
+        AuthorizationManager manager = new AuthorizationManager(true);
         manager.addRoleToResource("/admin", "user_premium");
         manager.addRoleToResource("/profile", "user");
         manager.addRoleToResource("/profile", "user_premium");

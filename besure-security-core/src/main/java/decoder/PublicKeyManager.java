@@ -12,7 +12,7 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+// todo: find out why Keycloak has 2 keys and when it can be more or less
 public class PublicKeyManager {
 
     private static final PublicKeyManager INSTANCE = new PublicKeyManager();
@@ -23,12 +23,12 @@ public class PublicKeyManager {
 
     private final Map<String, RSAPublicKey> cachedPublicKeys = new ConcurrentHashMap<>();
 
-    private PublicKeyManager() {
-        init();
-    }
-
     public static PublicKeyManager getInstance() {
         return INSTANCE;
+    }
+
+    private PublicKeyManager() {
+        init();
     }
 
     private void init() {
@@ -65,21 +65,15 @@ public class PublicKeyManager {
     }
 
     public RSAPublicKey getPublicKey(String kid) {
-
-        RSAPublicKey publicKey = cachedPublicKeys.get(kid);
-
+        RSAPublicKey publicKey = cachedPublicKeys.computeIfAbsent(kid, (k) -> {
+            refreshKeys();
+            return cachedPublicKeys.get(kid);
+        });
         if (publicKey != null) {
             return publicKey;
         }
 
-        refreshKeys();
-        publicKey = cachedPublicKeys.get(kid);
-
-        if (publicKey != null) {
-            return publicKey;
-        }
-
-        throw new IllegalArgumentException(
+        throw new IllegalArgumentException(// todo: shouldn't this be security-related exception class?
                 "No public key found for kid: " + kid);
     }
 
